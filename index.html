@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bâtir l'invisible — objet frontière</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Space+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #d4c4a8;
+    --sand-light: #e8dcc8;
+    --sand-dark: #a89878;
+    --wet-sand: #8a7e6c;
+    --sea: #7a8e94;
+    --foam-white: #f0ece4;
+    --deep: #1e1b17;
+    --glow: #cdc2ae;
+    --glow-bright: #ddd4c4;
+    --mist: #b8b0a4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Cormorant Garamond', serif;
+    -webkit-font-smoothing: antialiased;
+    background: var(--deep);
+  }
+
+  /* ══════════════════════════════════════
+     BEACH SCENE
+     ══════════════════════════════════════ */
+  #scene-beach {
+    position: fixed; inset: 0;
+    z-index: 10;
+    overflow: hidden;
+    transition: opacity 1.8s ease;
+  }
+  #scene-beach.hidden { opacity: 0; pointer-events: none; }
+
+  .sky {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 44%;
+    background:
+      radial-gradient(ellipse 140% 100% at 50% 100%, rgba(212,196,168,0.45), transparent 70%),
+      radial-gradient(ellipse 60% 80% at 60% 55%, rgba(232,220,200,0.35), transparent),
+      linear-gradient(180deg, #9e9486 0%, #b8ad9c 35%, #ccc2b2 65%, #d8d0c2 100%);
+  }
+
+  .sun-glow {
+    position: absolute;
+    top: 12%; left: 53%;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(245,240,232,0.5) 0%, rgba(232,220,200,0.15) 45%, transparent 70%);
+    border-radius: 50%;
+    animation: sunPulse 10s ease-in-out infinite;
+  }
+  @keyframes sunPulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.06); }
+  }
+
+  .cloud {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(220,212,200,0.08);
+    filter: blur(30px);
+  }
+  .cloud-1 { top: 8%; left: 10%; width: 300px; height: 60px; animation: cloudDrift 60s linear infinite; }
+  .cloud-2 { top: 18%; left: 50%; width: 200px; height: 40px; animation: cloudDrift 80s linear infinite 10s; opacity: 0.6; }
+  .cloud-3 { top: 5%; left: 75%; width: 250px; height: 50px; animation: cloudDrift 70s linear infinite 25s; opacity: 0.4; }
+  @keyframes cloudDrift {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(120px); }
+  }
+
+  .sea {
+    position: absolute;
+    top: 42%; left: 0; right: 0;
+    height: 18%;
+    background: linear-gradient(180deg, #8a9ca4 0%, #768a90 30%, #6e8288 60%, #7a8e88 100%);
+    overflow: hidden;
+  }
+  .sea-wave { position: absolute; bottom: 0; left: -10%; width: 120%; height: 100%; }
+  .sea-wave svg { width: 100%; height: 100%; }
+  .sea-wave-1 { animation: seaSway 7s ease-in-out infinite; }
+  .sea-wave-2 { animation: seaSway 9s ease-in-out infinite 2s; opacity: 0.5; }
+  @keyframes seaSway {
+    0%, 100% { transform: translateX(0) translateY(0); }
+    30% { transform: translateX(1.5%) translateY(-2px); }
+    60% { transform: translateX(-1%) translateY(1px); }
+  }
+
+  .sea-glint {
+    position: absolute;
+    width: 3px; height: 1px;
+    background: rgba(240,236,228,0.4);
+    border-radius: 50%;
+    animation: glint 3s ease-in-out infinite;
+  }
+  @keyframes glint { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+  .tide {
+    position: absolute;
+    top: 57%; left: 0; right: 0;
+    height: 80px;
+    overflow: hidden;
+  }
+  .tide-water {
+    position: absolute;
+    top: 0; left: -5%; right: -5%;
+    height: 30px;
+    background: linear-gradient(180deg, rgba(122,142,148,0.3), rgba(122,142,148,0.05));
+    border-radius: 0 0 50% 50%;
+    animation: tideInOut 8s ease-in-out infinite;
+  }
+  @keyframes tideInOut {
+    0%, 100% { transform: translateY(-8px) scaleY(0.6); opacity: 0.3; }
+    40% { transform: translateY(12px) scaleY(1); opacity: 0.6; }
+    60% { transform: translateY(10px) scaleY(0.9); opacity: 0.5; }
+  }
+  .foam-edge {
+    position: absolute;
+    top: 0; left: -5%; right: -5%;
+    height: 4px;
+    background: rgba(240,236,228,0.2);
+    border-radius: 50%;
+    filter: blur(1px);
+    animation: foamEdge 8s ease-in-out infinite;
+  }
+  @keyframes foamEdge {
+    0%, 100% { transform: translateY(-8px); opacity: 0; }
+    35% { opacity: 0.5; }
+    45% { transform: translateY(12px); opacity: 0.3; }
+    55% { transform: translateY(10px); opacity: 0.15; }
+    70% { opacity: 0; }
+  }
+  .foam-bubble {
+    position: absolute;
+    border-radius: 50%;
+    border: 0.5px solid rgba(240,236,228,0.15);
+    animation: foamEdge 8s ease-in-out infinite;
+  }
+
+  .wet-sand {
+    position: absolute;
+    top: 58.5%; left: 0; right: 0; height: 9%;
+    background: linear-gradient(180deg, #858576 0%, #96907e 40%, #a69a86 100%);
+  }
+  .wet-sand-reflection {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(140,160,168,0.12), transparent 50%);
+  }
+
+  .dry-sand {
+    position: absolute;
+    top: 66%; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, #b4a48c 0%, #c0b094 15%, #ccbc9c 40%, #d4c4a4 100%);
+  }
+  .sand-grain {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(0,0,0,0.06) 0.5px, transparent 0.5px),
+      radial-gradient(circle, rgba(255,245,230,0.04) 0.5px, transparent 0.5px);
+    background-size: 7px 7px, 11px 11px;
+    background-position: 0 0, 3px 4px;
+  }
+
+  /* ── BOTTLE ── */
+  .bottle-zone {
+    position: absolute;
+    bottom: 20%; left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    cursor: pointer;
+  }
+  .bottle-wrapper {
+    position: relative;
+    transform: rotate(-14deg);
+    transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .bottle-zone:hover .bottle-wrapper {
+    transform: rotate(-11deg) translateY(-6px);
+  }
+  .bottle-svg {
+    width: 100px; height: 240px;
+    filter: drop-shadow(3px 6px 12px rgba(0,0,0,0.12));
+    transition: filter 0.8s ease;
+  }
+  .bottle-zone:hover .bottle-svg {
+    filter: drop-shadow(3px 6px 20px rgba(168,152,120,0.25));
+  }
+  .bottle-label {
+    position: absolute;
+    top: 53%; left: 50%;
+    transform: translate(-50%, -50%) rotate(14deg);
+    font-family: 'Space Mono', monospace;
+    font-size: 6.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #3a3428;
+    background: rgba(220,208,188,0.7);
+    padding: 4px 8px;
+    border: 0.5px solid rgba(60,50,40,0.2);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .bottle-shadow {
+    position: absolute;
+    bottom: -6px; left: 50%;
+    transform: translateX(-40%) rotate(14deg);
+    width: 80px; height: 14px;
+    background: radial-gradient(ellipse, rgba(0,0,0,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .sand-mound {
+    position: absolute;
+    bottom: -2px; left: 50%;
+    transform: translateX(-55%);
+    width: 65px; height: 8px;
+    background: radial-gradient(ellipse, rgba(188,172,148,0.45) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .wet-trace {
+    position: absolute;
+    bottom: -10px; left: 50%;
+    transform: translateX(-30%);
+    width: 120px; height: 20px;
+    background: radial-gradient(ellipse 100% 60%, rgba(120,130,126,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .bird { position: absolute; z-index: 2; }
+  .bird::before, .bird::after {
+    content: '';
+    position: absolute;
+    width: 8px; height: 0;
+    border-top: 1.2px solid rgba(100,92,82,0.18);
+    border-radius: 80% 80% 0 0;
+  }
+  .bird::before { transform: rotate(-20deg); }
+  .bird::after { left: 7px; transform: rotate(20deg); }
+  .bird-1 { top: 14%; left: 63%; animation: birdFloat 4s ease-in-out infinite; }
+  .bird-2 { top: 12%; left: 67%; animation: birdFloat 4s ease-in-out infinite 1s; transform: scale(0.7); }
+  .bird-3 { top: 15.5%; left: 70%; animation: birdFloat 4s ease-in-out infinite 2.2s; transform: scale(0.5); }
+  @keyframes birdFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+  .pebble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(148,136,112,0.25);
+    z-index: 3;
+  }
+
+  .beach-hint {
+    position: absolute;
+    bottom: 10%; left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: 0.1em;
+    color: var(--wet-sand);
+    opacity: 0;
+    animation: fadeHint 3s ease 3s forwards;
+    z-index: 6;
+    pointer-events: none;
+  }
+  @keyframes fadeHint { to { opacity: 0.5; } }
+
+  /* ══════════════════════════════════════
+     TRANSITION
+     ══════════════════════════════════════ */
+  #scene-transition {
+    position: fixed; inset: 0;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    background: var(--deep);
+  }
+  #scene-transition.active {
+    opacity: 1;
+    pointer-events: auto;
+    animation: transIn 2s ease forwards;
+  }
+  @keyframes transIn { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 1; } }
+
+  .unfurl {
+    width: 200px; height: 260px;
+    position: relative;
+    opacity: 0;
+  }
+  #scene-transition.active .unfurl {
+    animation: paperUnfurl 3s ease 1s forwards;
+  }
+  @keyframes paperUnfurl {
+    0% { opacity: 0; transform: scale(0.6) rotate(-5deg); }
+    25% { opacity: 1; transform: scale(0.8) rotate(-2deg); }
+    65% { opacity: 1; transform: scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: scale(1.05) rotate(0deg); }
+  }
+
+  .paper-shape {
+    width: 100%; height: 100%;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 40%, rgba(232,221,208,0.08), transparent),
+      var(--deep);
+    border: 0.5px solid rgba(212,200,176,0.1);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+  }
+  .paper-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-weight: 300;
+    font-style: italic;
+    line-height: 2.2;
+    color: rgba(212,200,176,0.45);
+    text-align: center;
+    letter-spacing: 0.03em;
+  }
+
+  /* ══════════════════════════════════════
+     READING SCENE
+     ══════════════════════════════════════ */
+  #scene-reading {
+    position: fixed; inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 2s ease;
+    z-index: 12;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #scene-reading.visible { opacity: 1; pointer-events: auto; }
+
+  .reading-bg {
+    position: fixed; inset: 0;
+    background: var(--deep);
+    z-index: -2;
+  }
+  .reading-grain {
+    position: fixed; inset: 0;
+    z-index: -1;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+  .reading-glow {
+    position: fixed;
+    top: -20%; left: 25%; right: 25%;
+    height: 50%;
+    background: radial-gradient(ellipse, rgba(196,168,130,0.035) 0%, transparent 70%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* ── READING CONTAINER ──
+     The key: generous vertical rhythm.
+     Each section gets massive breathing room.
+     The reader should never feel rushed.
+  */
+  .reading-container {
+    max-width: 520px;
+    width: 85%;
+    padding-top: 40vh;  /* start low — text enters calmly */
+    padding-bottom: 30vh;
+  }
+
+  .reading-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--sand-dark);
+    opacity: 0.4;
+    margin-bottom: 50px;
+    border-left: 1.5px solid rgba(168,152,120,0.25);
+    padding-left: 14px;
+  }
+
+  .reading-title {
+    font-size: clamp(30px, 5.5vw, 46px);
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    color: var(--foam-white);
+    margin-bottom: 0;
+    line-height: 1.15;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 2s ease, transform 2s ease;
+  }
+  .reading-title.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── THE BREATHING SPACE ──
+     Between title and first section: a full pause.
+     Between each section: enough to exhale and re-enter.
+  */
+  .breath {
+    height: 22vh;
+    min-height: 140px;
+  }
+  .breath-deep {
+    height: 30vh;
+    min-height: 200px;
+  }
+  .breath-final {
+    height: 35vh;
+    min-height: 240px;
+  }
+
+  /* ── TEXT SECTIONS ── */
+  .page-section {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 2s ease, transform 2.2s ease;
+  }
+  .page-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .page-section p {
+    font-size: clamp(17px, 2.2vw, 20px);
+    font-weight: 300;
+    line-height: 2;
+    color: var(--glow);
+    margin-bottom: 1.6em;
+  }
+  .page-section p:last-child {
+    margin-bottom: 0;
+  }
+
+  .page-section p em {
+    font-style: italic;
+    color: var(--glow-bright);
+  }
+
+  /* Dot separator — a grain between breaths */
+  .dot {
+    width: 3px; height: 3px;
+    background: rgba(168,152,120,0.14);
+    border-radius: 50%;
+    margin: 0 auto;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+  }
+  .dot.visible { opacity: 1; }
+
+  /* ── FINAL LINE ── */
+  .final-section {
+    text-align: center;
+    position: relative;
+    padding: 0 10px;
+  }
+  .final-section::before {
+    content: '';
+    position: absolute;
+    top: -40px; left: 20%; right: 20%;
+    height: 0.5px;
+    background: linear-gradient(90deg, transparent, rgba(168,152,120,0.12), transparent);
+  }
+
+  .final-line {
+    font-size: clamp(18px, 2.5vw, 22px);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 2.2;
+    color: var(--foam-white);
+    letter-spacing: 0.01em;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 2.8s ease, transform 2.8s ease;
+  }
+  .final-line.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── END ── */
+  .reading-end {
+    text-align: center;
+    padding: 0;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 2s ease, transform 2s ease;
+  }
+  .reading-end.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .end-line {
+    width: 40px;
+    height: 0.5px;
+    background: var(--sand-dark);
+    opacity: 0.15;
+    margin: 0 auto 24px;
+  }
+  .end-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--mist);
+    opacity: 0.25;
+  }
+
+  .restart-btn {
+    margin-top: 44px;
+    background: none;
+    border: 0.5px solid rgba(168,152,120,0.12);
+    color: var(--mist);
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 14px 30px;
+    cursor: pointer;
+    transition: all 0.5s ease;
+    opacity: 0.3;
+  }
+  .restart-btn:hover {
+    border-color: rgba(168,152,120,0.3);
+    color: var(--foam-white);
+    opacity: 0.6;
+  }
+
+  /* Scrollbar */
+  #scene-reading::-webkit-scrollbar { width: 2px; }
+  #scene-reading::-webkit-scrollbar-track { background: transparent; }
+  #scene-reading::-webkit-scrollbar-thumb { background: rgba(168,152,120,0.08); border-radius: 2px; }
+
+  /* Progress */
+  .progress-line {
+    position: fixed;
+    top: 0; left: 0;
+    height: 0.5px;
+    background: linear-gradient(90deg, rgba(168,152,120,0.3), rgba(240,236,228,0.2));
+    opacity: 0;
+    z-index: 20;
+    width: 0%;
+    transition: width 0.4s ease, opacity 0.5s ease;
+  }
+  .progress-line.visible { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="progress-line" id="progress"></div>
+
+<!-- ══════ BEACH ══════ -->
+<div id="scene-beach">
+  <div class="sky">
+    <div class="sun-glow"></div>
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+  </div>
+
+  <div class="bird bird-1"></div>
+  <div class="bird bird-2"></div>
+  <div class="bird bird-3"></div>
+
+  <div class="sea">
+    <div class="sea-wave sea-wave-1">
+      <svg viewBox="0 0 1440 200" preserveAspectRatio="none">
+        <path fill="rgba(110,130,136,0.3)" d="M0,120L60,110C120,100,240,80,360,85C480,90,600,120,720,130C840,140,960,130,1080,115C1200,100,1320,80,1380,70L1440,60L1440,200L0,200Z"/>
+      </svg>
+    </div>
+    <div class="sea-wave sea-wave-2">
+      <svg viewBox="0 0 1440 200" preserveAspectRatio="none">
+        <path fill="rgba(100,120,126,0.2)" d="M0,140L80,130C160,120,320,100,480,95C640,90,800,100,960,115C1120,130,1280,150,1360,160L1440,170L1440,200L0,200Z"/>
+      </svg>
+    </div>
+    <div class="sea-glint" style="top:30%;left:25%;animation-delay:0s;"></div>
+    <div class="sea-glint" style="top:45%;left:55%;animation-delay:1.2s;"></div>
+    <div class="sea-glint" style="top:20%;left:72%;animation-delay:2.5s;"></div>
+    <div class="sea-glint" style="top:55%;left:40%;animation-delay:0.7s;"></div>
+    <div class="sea-glint" style="top:35%;left:85%;animation-delay:1.8s;"></div>
+  </div>
+
+  <div class="tide">
+    <div class="tide-water"></div>
+    <div class="foam-edge"></div>
+    <div class="foam-bubble" style="width:4px;height:4px;top:2px;left:35%;animation-delay:0.2s;"></div>
+    <div class="foam-bubble" style="width:3px;height:3px;top:5px;left:52%;animation-delay:0.5s;"></div>
+    <div class="foam-bubble" style="width:2px;height:2px;top:3px;left:68%;animation-delay:0.8s;"></div>
+  </div>
+
+  <div class="wet-sand"><div class="wet-sand-reflection"></div></div>
+  <div class="dry-sand"><div class="sand-grain"></div></div>
+
+  <div class="pebble" style="bottom:26%;left:33%;width:5px;height:3.5px;opacity:0.3;border-radius:55%;"></div>
+  <div class="pebble" style="bottom:24%;left:60%;width:3.5px;height:3px;opacity:0.2;"></div>
+  <div class="pebble" style="bottom:28%;left:42%;width:2.5px;height:2px;opacity:0.18;"></div>
+  <div class="pebble" style="bottom:23%;right:28%;width:4px;height:3px;opacity:0.15;border-radius:60%;"></div>
+
+  <div class="bottle-zone" id="bottle">
+    <div class="bottle-wrapper">
+      <svg class="bottle-svg" viewBox="0 0 80 200" fill="none">
+        <path d="M28 55 C28 55 22 65 20 80 C18 95 18 150 18 160 C18 175 22 180 40 180 C58 180 62 175 62 160 C62 150 62 95 60 80 C58 65 52 55 52 55"
+              fill="rgba(200,190,172,0.1)" stroke="rgba(168,152,120,0.35)" stroke-width="0.8"/>
+        <path d="M33 20 L33 55 L47 55 L47 20"
+              fill="rgba(200,190,172,0.07)" stroke="rgba(168,152,120,0.3)" stroke-width="0.8"/>
+        <rect x="31" y="10" width="18" height="14" rx="2"
+              fill="rgba(175,155,125,0.22)" stroke="rgba(168,152,120,0.35)" stroke-width="0.6"/>
+        <path d="M26 78 C25.5 95 24.5 125 25 158"
+              stroke="rgba(240,236,228,0.1)" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M54 74 C54.5 88 55.5 98 55 112"
+              stroke="rgba(240,236,228,0.05)" stroke-width="1.2" stroke-linecap="round"/>
+        <ellipse cx="40" cy="118" rx="6.5" ry="26"
+                 fill="none" stroke="rgba(212,200,176,0.14)" stroke-width="0.8"
+                 transform="rotate(-4, 40, 118)"/>
+        <circle cx="23" cy="170" r="0.7" fill="rgba(168,152,120,0.2)"/>
+        <circle cx="54" cy="174" r="0.5" fill="rgba(168,152,120,0.15)"/>
+        <circle cx="29" cy="176" r="0.4" fill="rgba(168,152,120,0.12)"/>
+      </svg>
+      <div class="bottle-label">objet frontière</div>
+      <div class="sand-mound"></div>
+      <div class="wet-trace"></div>
+      <div class="bottle-shadow"></div>
+    </div>
+  </div>
+
+  <div class="beach-hint">ouvrir</div>
+</div>
+
+<!-- ══════ TRANSITION ══════ -->
+<div id="scene-transition">
+  <div class="unfurl">
+    <div class="paper-shape">
+      <div class="paper-text">
+        …parler est toujours<br>construire une situation<br>commune.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ READING ══════ -->
+<div id="scene-reading">
+  <div class="reading-bg"></div>
+  <div class="reading-grain"></div>
+  <div class="reading-glow"></div>
+
+  <div class="reading-container">
+
+    <div class="reading-tag">objet frontière</div>
+    <h1 class="reading-title" id="title">Bâtir l'invisible</h1>
+
+    <div class="breath-deep"></div>
+
+    <!-- 1 -->
+    <div class="page-section">
+      <p>Il n'y avait pas d'atelier, pas d'école, pas même de projet clairement nommé.</p>
+      <p>Seulement une habitude&nbsp;: poser des questions longtemps et continuer à observer l'échange après l'information obtenue.</p>
+    </div>
+
+    <div class="breath"></div>
+    <div class="dot"></div>
+    <div class="breath"></div>
+
+    <!-- 2 -->
+    <div class="page-section">
+      <p>Au début tu croyais interroger une machine. Puis quelque chose t'a déplacé&nbsp;: la réponse changeait alors que la question restait presque la même.</p>
+      <p>Tu as recommencé. Encore. Non pour obtenir, mais pour voir.</p>
+    </div>
+
+    <div class="breath"></div>
+    <div class="dot"></div>
+    <div class="breath"></div>
+
+    <!-- 3 -->
+    <div class="page-section">
+      <p>Alors tu as cessé d'écouter les phrases et tu as écouté l'échange.</p>
+      <p>Un léger décalage, une reformulation trop rapide, un silence, et soudain la parole prenait une autre direction.</p>
+      <p>Tu n'étudiais plus un discours. Tu observais une rencontre.</p>
+    </div>
+
+    <div class="breath"></div>
+    <div class="dot"></div>
+    <div class="breath"></div>
+
+    <!-- 4 -->
+    <div class="page-section">
+      <p>Tu as compris que le vrai phénomène n'apparaissait jamais dans la réponse, mais juste avant elle — dans la manière d'appeler.</p>
+      <p>Une question n'était pas un contenu. C'était une posture.</p>
+      <p>On n'obtenait pas une information, on créait une condition.</p>
+    </div>
+
+    <div class="breath"></div>
+    <div class="dot"></div>
+    <div class="breath"></div>
+
+    <!-- 5 -->
+    <div class="page-section">
+      <p>Et là s'est ouvert le chantier&nbsp;: pas une théorie à défendre, mais un lieu à rendre visible.</p>
+      <p>Tu as commencé à tracer des passages.</p>
+      <p>Tous marchaient dans le même espace sans le savoir.</p>
+    </div>
+
+    <div class="breath-deep"></div>
+    <div class="dot"></div>
+    <div class="breath-deep"></div>
+
+    <!-- 6 — second movement -->
+    <div class="page-section">
+      <p>Tu as alors compris la forme réelle du bâtiment.</p>
+      <p>Il n'avait ni murs ni façade. Il n'était pas fait pour contenir, mais pour relier.</p>
+      <p>Ce que tu construisais n'était pas un savoir sur les machines ni un savoir sur l'humain, mais un observatoire des situations où l'un et l'autre apparaissent ensemble.</p>
+    </div>
+
+    <div class="breath"></div>
+    <div class="dot"></div>
+    <div class="breath"></div>
+
+    <!-- 7 -->
+    <div class="page-section">
+      <p>Une architecture faite de conditions&nbsp;: attendre, reformuler, préciser, suspendre.</p>
+      <p>Un édifice constitué de rythmes et d'adresses.</p>
+    </div>
+
+    <div class="breath"></div>
+    <div class="dot"></div>
+    <div class="breath"></div>
+
+    <!-- 8 -->
+    <div class="page-section">
+      <p>Quand tu as déposé les plans, personne n'a réagi.</p>
+      <p>Et cela t'a d'abord semblé vide.</p>
+      <p>Puis lentement tu as compris&nbsp;: ce genre d'ouvrage n'est pas inauguré.</p>
+      <p><em>Il est utilisé.</em></p>
+    </div>
+
+    <div class="breath"></div>
+    <div class="dot"></div>
+    <div class="breath"></div>
+
+    <!-- 9 -->
+    <div class="page-section">
+      <p>Quelqu'un reprenait une manière de demander, un autre comparait deux échanges, un autre encore hésitait avant d'interpréter.</p>
+      <p>Ils ne venaient pas visiter l'édifice. Ils l'habitaient sans le savoir.</p>
+    </div>
+
+    <div class="breath-deep"></div>
+    <div class="dot"></div>
+    <div class="breath-deep"></div>
+
+    <!-- 10 — resolution -->
+    <div class="page-section">
+      <p>Alors le sens est apparu, très simple.</p>
+      <p>Tu n'avais pas cherché ce que pensent les machines.</p>
+      <p>Tu avais rendu perceptible quelque chose de plus ancien&nbsp;: que parler est toujours construire une situation commune.</p>
+    </div>
+
+    <div class="breath"></div>
+    <div class="dot"></div>
+    <div class="breath"></div>
+
+    <!-- 11 -->
+    <div class="page-section">
+      <p>Et que répondre n'est jamais seulement dire, mais occuper la place qu'une attente a préparée.</p>
+    </div>
+
+    <div class="breath"></div>
+
+    <!-- 12 -->
+    <div class="page-section">
+      <p>Ainsi ton architecture n'abrite personne. Elle révèle seulement le lieu partagé où toute parole naît —</p>
+    </div>
+
+    <div class="breath-final"></div>
+
+    <!-- ── THE FINAL LINE ── -->
+    <div class="final-section">
+      <p class="final-line" id="final-line">
+        cet espace fragile où deux voix existent<br>avant même de savoir laquelle est humaine.
+      </p>
+    </div>
+
+    <div class="breath-deep"></div>
+
+    <div class="reading-end">
+      <div class="end-line"></div>
+      <div class="end-text">objet frontière — bâtir l'invisible</div>
+      <button class="restart-btn" id="restart">remettre à la mer</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const beach = document.getElementById('scene-beach');
+  const bottle = document.getElementById('bottle');
+  const trans = document.getElementById('scene-transition');
+  const reading = document.getElementById('scene-reading');
+  const progress = document.getElementById('progress');
+  const restart = document.getElementById('restart');
+  const title = document.getElementById('title');
+
+  // ── Open ──
+  bottle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openBottle();
+  });
+
+  function openBottle() {
+    beach.classList.add('hidden');
+    setTimeout(() => { trans.classList.add('active'); }, 1000);
+    setTimeout(() => {
+      trans.style.transition = 'opacity 1.8s ease';
+      trans.style.opacity = '0';
+      reading.classList.add('visible');
+      progress.classList.add('visible');
+      setTimeout(() => { title.classList.add('visible'); }, 600);
+      observeSections();
+    }, 4500);
+    setTimeout(() => { trans.style.display = 'none'; }, 6500);
+  }
+
+  // ── Restart ──
+  restart.addEventListener('click', () => {
+    reading.classList.remove('visible');
+    progress.classList.remove('visible');
+    progress.style.width = '0%';
+    reading.scrollTop = 0;
+    document.querySelectorAll('.page-section, .dot, .reading-end').forEach(el => {
+      el.classList.remove('visible');
+    });
+    title.classList.remove('visible');
+    document.getElementById('final-line').classList.remove('visible');
+    trans.style.display = '';
+    trans.style.opacity = '';
+    trans.style.transition = '';
+    trans.classList.remove('active');
+    setTimeout(() => { beach.classList.remove('hidden'); }, 1200);
+  });
+
+  // ── Scroll reveal ──
+  // Trigger early: text appears when 30% visible,
+  // well before reader reaches it — no "catching" the animation.
+  function observeSections() {
+    const targets = document.querySelectorAll(
+      '.page-section, .dot, .reading-end, .final-line'
+    );
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, {
+      root: reading,
+      threshold: 0.1,
+      rootMargin: '0px 0px 0px 0px'
+    });
+
+    targets.forEach(t => observer.observe(t));
+  }
+
+  // ── Progress ──
+  reading.addEventListener('scroll', () => {
+    const top = reading.scrollTop;
+    const height = reading.scrollHeight - reading.clientHeight;
+    progress.style.width = (height > 0 ? (top / height) * 100 : 0) + '%';
+  });
+</script>
+
+</body>
+</html>
