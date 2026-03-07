@@ -367,15 +367,10 @@
     pointer-events: none;
   }
 
-  /* ── READING CONTAINER ──
-     The key: generous vertical rhythm.
-     Each section gets massive breathing room.
-     The reader should never feel rushed.
-  */
   .reading-container {
     max-width: 520px;
     width: 85%;
-    padding-top: 40vh;  /* start low — text enters calmly */
+    padding-top: 40vh;
     padding-bottom: 30vh;
   }
 
@@ -407,10 +402,6 @@
     transform: translateY(0);
   }
 
-  /* ── THE BREATHING SPACE ──
-     Between title and first section: a full pause.
-     Between each section: enough to exhale and re-enter.
-  */
   .breath {
     height: 22vh;
     min-height: 140px;
@@ -424,7 +415,6 @@
     min-height: 240px;
   }
 
-  /* ── TEXT SECTIONS ── */
   .page-section {
     opacity: 0;
     transform: translateY(20px);
@@ -451,7 +441,6 @@
     color: var(--glow-bright);
   }
 
-  /* Dot separator — a grain between breaths */
   .dot {
     width: 3px; height: 3px;
     background: rgba(168,152,120,0.14);
@@ -462,7 +451,6 @@
   }
   .dot.visible { opacity: 1; }
 
-  /* ── FINAL LINE ── */
   .final-section {
     text-align: center;
     position: relative;
@@ -492,7 +480,106 @@
     transform: translateY(0);
   }
 
-  /* ── END ── */
+  /* ── VIDEO SECTION ── */
+  .video-section {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 2.2s ease, transform 2.2s ease;
+    margin-top: 0;
+  }
+  .video-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .video-section::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 0.5px;
+    background: linear-gradient(90deg, transparent, rgba(168,152,120,0.18), transparent);
+    margin: 0 auto 38px;
+  }
+
+  .video-meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--sand-dark);
+    opacity: 0.35;
+    margin-bottom: 18px;
+    text-align: center;
+  }
+
+  .video-title {
+    font-size: clamp(24px, 4vw, 32px);
+    line-height: 1.25;
+    font-weight: 300;
+    color: var(--foam-white);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .video-description {
+    max-width: 720px;
+    margin: 0 auto 30px;
+    text-align: left;
+    font-size: clamp(16px, 2vw, 18px);
+    line-height: 1.9;
+    font-weight: 300;
+    color: var(--glow);
+  }
+
+  .video-frame {
+    position: relative;
+    width: 100%;
+    max-width: 860px;
+    margin: 0 auto;
+    border: 0.5px solid rgba(168,152,120,0.14);
+    background: rgba(240,236,228,0.02);
+    box-shadow: 0 0 0 1px rgba(240,236,228,0.02) inset;
+    overflow: hidden;
+  }
+
+  .video-frame::before {
+    content: '';
+    display: block;
+    padding-top: 56.25%;
+  }
+
+  .video-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .video-linkline {
+    margin-top: 18px;
+    text-align: center;
+  }
+
+  .video-linkline a {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--mist);
+    opacity: 0.45;
+    text-decoration: none;
+    border-bottom: 0.5px solid rgba(168,152,120,0.18);
+    padding-bottom: 3px;
+    transition: all 0.4s ease;
+  }
+
+  .video-linkline a:hover {
+    color: var(--foam-white);
+    opacity: 0.75;
+    border-bottom-color: rgba(168,152,120,0.38);
+  }
+
   .reading-end {
     text-align: center;
     padding: 0;
@@ -541,12 +628,10 @@
     opacity: 0.6;
   }
 
-  /* Scrollbar */
   #scene-reading::-webkit-scrollbar { width: 2px; }
   #scene-reading::-webkit-scrollbar-track { background: transparent; }
   #scene-reading::-webkit-scrollbar-thumb { background: rgba(168,152,120,0.08); border-radius: 2px; }
 
-  /* Progress */
   .progress-line {
     position: fixed;
     top: 0; left: 0;
@@ -558,11 +643,56 @@
     transition: width 0.4s ease, opacity 0.5s ease;
   }
   .progress-line.visible { opacity: 1; }
+
+  .profile-link {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 999999;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    border: 0.5px solid rgba(168,152,120,0.25);
+    border-radius: 12px;
+    color: rgba(240,236,228,0.65);
+    background: rgba(30,27,23,0.22);
+    text-decoration: none;
+    backdrop-filter: blur(4px);
+    transition: all 0.4s ease;
+  }
+  .profile-link:hover {
+    color: rgba(240,236,228,0.9);
+    border-color: rgba(168,152,120,0.42);
+    background: rgba(30,27,23,0.35);
+  }
+
+  @media (max-width: 700px) {
+    .reading-container {
+      width: 88%;
+      padding-top: 32vh;
+    }
+
+    .video-description {
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .profile-link {
+      top: 10px;
+      right: 10px;
+      font-size: 8px;
+      padding: 9px 10px;
+    }
+  }
 </style>
 </head>
 <body>
 
 <div class="progress-line" id="progress"></div>
+
+<a href="./researcher.html" class="profile-link">Research profile</a>
 
 <!-- ══════ BEACH ══════ -->
 <div id="scene-beach">
@@ -718,7 +848,7 @@
     <div class="dot"></div>
     <div class="breath-deep"></div>
 
-    <!-- 6 — second movement -->
+    <!-- 6 -->
     <div class="page-section">
       <p>Tu as alors compris la forme réelle du bâtiment.</p>
       <p>Il n'avait ni murs ni façade. Il n'était pas fait pour contenir, mais pour relier.</p>
@@ -761,7 +891,7 @@
     <div class="dot"></div>
     <div class="breath-deep"></div>
 
-    <!-- 10 — resolution -->
+    <!-- 10 -->
     <div class="page-section">
       <p>Alors le sens est apparu, très simple.</p>
       <p>Tu n'avais pas cherché ce que pensent les machines.</p>
@@ -786,11 +916,39 @@
 
     <div class="breath-final"></div>
 
-    <!-- ── THE FINAL LINE ── -->
+    <!-- FINAL LINE -->
     <div class="final-section">
       <p class="final-line" id="final-line">
         cet espace fragile où deux voix existent<br>avant même de savoir laquelle est humaine.
       </p>
+    </div>
+
+    <div class="breath-deep"></div>
+    <div class="dot"></div>
+    <div class="breath-deep"></div>
+
+    <!-- VIDEO SECTION -->
+    <div class="video-section">
+      <div class="video-meta">objet frontière multimédia</div>
+      <h2 class="video-title">Le coût invisible de l’autisme adulte : fréquence des comportements et effort d’adaptation</h2>
+
+      <p class="video-description">
+        Cette vidéo prolonge le travail d’observation des situations où ce qui est visible ne suffit pas à rendre compte de ce qui est vécu. Elle présente une réflexion méthodologique sur une dimension souvent peu saisie dans l’évaluation de l’autisme adulte&nbsp;: le coût subjectif associé aux situations sociales, à l’effort d’adaptation et à la fatigue qu’elles peuvent impliquer. Elle s’inscrit dans le cadre du projet <em>CHICHE</em>, à l’interface entre expérience vécue, dispositifs d’évaluation et méthodologie des interactions.
+      </p>
+
+      <div class="video-frame">
+        <iframe
+          src="https://www.youtube.com/embed/KvH5RoYv8ZQ"
+          title="Le coût invisible de l’autisme adulte : fréquence des comportements et effort d’adaptation"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen>
+        </iframe>
+      </div>
+
+      <div class="video-linkline">
+        <a href="https://youtu.be/KvH5RoYv8ZQ" target="_blank" rel="noopener noreferrer">ouvrir sur YouTube</a>
+      </div>
     </div>
 
     <div class="breath-deep"></div>
@@ -813,7 +971,6 @@
   const restart = document.getElementById('restart');
   const title = document.getElementById('title');
 
-  // ── Open ──
   bottle.addEventListener('click', (e) => {
     e.stopPropagation();
     openBottle();
@@ -833,13 +990,12 @@
     setTimeout(() => { trans.style.display = 'none'; }, 6500);
   }
 
-  // ── Restart ──
   restart.addEventListener('click', () => {
     reading.classList.remove('visible');
     progress.classList.remove('visible');
     progress.style.width = '0%';
     reading.scrollTop = 0;
-    document.querySelectorAll('.page-section, .dot, .reading-end').forEach(el => {
+    document.querySelectorAll('.page-section, .dot, .reading-end, .video-section').forEach(el => {
       el.classList.remove('visible');
     });
     title.classList.remove('visible');
@@ -851,12 +1007,9 @@
     setTimeout(() => { beach.classList.remove('hidden'); }, 1200);
   });
 
-  // ── Scroll reveal ──
-  // Trigger early: text appears when 30% visible,
-  // well before reader reaches it — no "catching" the animation.
   function observeSections() {
     const targets = document.querySelectorAll(
-      '.page-section, .dot, .reading-end, .final-line'
+      '.page-section, .dot, .reading-end, .final-line, .video-section'
     );
 
     const observer = new IntersectionObserver((entries) => {
@@ -874,7 +1027,6 @@
     targets.forEach(t => observer.observe(t));
   }
 
-  // ── Progress ──
   reading.addEventListener('scroll', () => {
     const top = reading.scrollTop;
     const height = reading.scrollHeight - reading.clientHeight;
@@ -883,24 +1035,4 @@
 </script>
 
 </body>
-  <a href="./researcher.html" style="
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  z-index: 999999;
-  font-family: 'Space Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  padding: 10px 12px;
-  border: 0.5px solid rgba(168,152,120,0.25);
-  border-radius: 12px;
-  color: rgba(240,236,228,0.65);
-  background: rgba(30,27,23,0.22);
-  text-decoration: none;
-  backdrop-filter: blur(4px);
-">
-  Research profile
-</a>
 </html>
-
